@@ -8,7 +8,7 @@ Thank you for your interest in our Data Scientist positions. Before we have a ch
 
 ## Approach
 
-Please make use of the data by the [Medina Municipality](https://services.amana-md.gov.sa/eservicesite/Inq/DeathInquiry.aspx)
+Please make use of (but not limited to) the data by the [Medina Municipality](https://services.amana-md.gov.sa/eservicesite/Inq/DeathInquiry.aspx)
 
 Structure your analysis with the following components:
 
@@ -25,15 +25,15 @@ You may code in `python` or `R` in a jupyter notebook environment.
 
 There are 3 steps:
 
-1. To accept this task, clone this repo to create your repo.
-2. When you are done, make your repo public
+1. To accept this task, clone this repo.
+2. When you are done, push it to your own github repo and make your repo public
 3. Fill [this form](https://forms.gle/dxtxxXuMLcv7QXNe8)
 
 ## Tips
 
-1. Make sure your notebook is properly rendered before commit.
+1. Make sure your notebook is properly rendered before push.
 2. Include a proper .gitignore to reduce clutter in your repo.
-3. This is about showcasing your skills and thinking. Feel free to go above and beyond.
+3. This is about showcasing your skills and thinking. Please comment along the way and share your thought process. *Commit Often, Perfect Later.*
 4. If you have relevant past projects (with code and/or visualization showcases) that you would like to share, feel free to add the repos and/or Tableau public links in the section below.
 
 ## Past projects
