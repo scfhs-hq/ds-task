@@ -4,7 +4,7 @@ Thank you for your interest in our Data Scientist positions. Before we have a ch
 
 ## Question
 
-`Are We More Likely to Die in Shaban Than Any Other Month?` (for context see [this link](https://aboutislam.net/counseling/ask-the-scholar/misconception/people-die-shaban/))
+A friend once told me some in the Muslim community think people tend to die more (often) in the month of Shaban. As a data scientist, what do you think?
 
 ## Approach
 
