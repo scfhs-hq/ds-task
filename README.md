@@ -35,5 +35,6 @@ There are 3 steps:
 2. Include a proper .gitignore to reduce clutter in your repo.
 3. This is about showcasing your skills and thinking. Please comment along the way and share your thought process. *Commit Often, Perfect Later.*
 4. If you have relevant past projects (with code and/or visualization showcases) that you would like to share, feel free to add the repos and/or Tableau public links in the section below.
+5. If you have any questions, please raise an issue on this repo.
 
 ## Past projects
