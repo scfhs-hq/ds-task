@@ -1,0 +1,450 @@
+Explore and Summarize Migrants data 
+by 
+Yasser O. Alnakhli
+========================================================
+
+#*The Dataset*: 
+source:
+https://data.humdata.org/dataset/migrant-deaths-by-month
+About the Humanitarian Data Exchange
+The Humanitarian Data Exchange (HDX) is an open platform for sharing data, launched in July 2014. The goal of HDX is to make humanitarian data easy to find and use for analysis.
+
+
+#*Dataset overview:*
+Migrant Deaths by month
+“Missing Migrants Project draws on a range of sources to track deaths of migrants along migratory routes across the globe. Data from this project are published in the report “Fatal Journeys: Tracking Lives Lost during Migration,” which provides the most comprehensive global tally of migrant fatalities for 2014, and estimates deaths over the past 15 years.”
+
+#*Metadata:*
+
+Source: International Organization for Migration (IOM)
+Date of Dataset: Apr 24, 2017
+Observations: 2373 obs
+Expected Update Frequency: Every day
+Visibility: Public
+Data Collection Methodology: http://missingmigrants.iom.int/methodology
+
+
+```{r echo=FALSE, Load_the_Data}
+# import the dataset
+MissingMigrants <- read.csv("~/Udacity/P4/MissingMigrants2.csv")
+#view the dataset
+View(MissingMigrants)
+# assign it to a simple variable
+MM = MissingMigrants
+```
+
+
+#**Introduction:**
+Refugee is a global issue and it most be dressed from different prospectives to find solutions. The available data should be used more effectively to monitor the current situation . Data science and analyst specialist can contribute and they can use their skills to help decision makes and political parties taking the right decisions and give more efforts. 
+
+I choose this dataset to contribute in understanding the refugees problem and find some solutions. May be tracing their death locations, studying which time of the year has the highest rate, and other variables will give an idea for future actions to rescue them or at least prevent this to happen again. 
+
+
+It is good to see some data analyst experts contribute somehow. There is another dataset in Kaggle https://www.kaggle.com/jitender786/world-refugee-count-by-countries dressing similar problem. However, the dataset I used can give more and more details and it also meet the project data criteria. 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, packages}
+# Load all of the packages that you end up using in your analysis in this code
+library(ggplot2)
+library(ggmap)
+library(maps)
+library(mapdata)
+library(gridExtra)
+library(rworldmap)
+library(tidyr)
+library(ggplot2)
+library(GGally)
+library(scales)
+library(memisc)
+library(RColorBrewer)
+```
+
+
+#**Variables explanation**:
+There are 12 variables.
+- 2 int missings and deaths
+- 2 num geographic coordinate Latitude and Longitude.
+- The Region Origin: the origion where the migrants came
+- The incident region: the region where the migrants died or missed
+- Affected Nationality: the migrants nationality
+- An important variable is the date of the case report (DD/MM/YYYY format)
+- Other variables will not be focused on... 
+- Regarding to the Incident Region, there are some abbrivations as following:
+
+  - MENA:Middle East and North Africa region. https://en.wikipedia.org/wiki/MENA
+  - 
+
+```{r echo=F, Explore_and_Clean_Data}
+# exploring 
+str(MissingMigrants)
+
+#=======================================#
+
+#Dataset cleaning
+#The dataset has missing values (NA) it will be treated directly on the variable..
+#the following 4 variables are num and int so we c
+?is.na
+MM$affected_missing[is.na(MM$affected_missing)] <- 0
+MM$affected_dead[is.na(MM$affected_dead)] <- 0
+MM$geo_lat[is.na(MM$geo_lat)] <- 0
+MM$geo_lon[is.na(MM$geo_lon)] <- 0
+
+#=======================================#
+
+#change the current date format to be suitable to R
+MM$Year <- as.Date(MM$date_reported,format="%d/%m/%Y")
+
+```
+
+# Univariate Plots Section
+
+
+```{r echo=F, Univariate_Plot1}
+
+# assume the missing migrants are dead and then sum the dead and the missings 
+#this step is to explore the total death by years/moths as following
+MM$D <- as.numeric(MM$affected_dead)
+MM$M <- as.numeric(MM$affected_missing)
+MM$Tdeath <- MM$M + MM$D 
+MissingMigDate <- ggplot( data = MM, aes( Year, MM$Tdeath )) + 
+  geom_line()+ ylab("Number of deaths") +
+  ggtitle("Number of total deaths over years")
+  
+MissingMigDate 
+
+#some summaries
+sum(MM$affected_missing)
+sum(MM$affected_dead)
+sum(MM$Tdeath)
+
+```
+
+We can see from the above plot that year 2015 between the months January and July has the highst number of dead migrants. We can look into this time into more details... 
+
+
+
+
+
+
+
+
+
+```{r echo=F, Univariate_Plot1_Year2015}
+# focus of the year with the higher death rate 2015
+years2015 <- subset(MM,format(as.Date(MM$Year),"%Y")==2015)
+ggplot( data = years2015, aes( Year, years2015$Tdeath)) + 
+  geom_line()+ ylab("Number of total deaths") +
+  ggtitle("Number of deaths in 2015")+
+  xlab("Months of 2015")
+
+```
+
+It shows that April of 2015 has the highst death rate in migrants. We can look deep and check which nationality affected the most... and where? What are the reason behind this situation all those questions and more can be observed from just looking into this graph some of them will be answered. 
+
+It also shows after this accident, the death reports decresed .. may be the affected regions took more resticted rules to avoid this to happen again... 
+
+
+
+```{r echo=F, Univariate_Plot2}
+
+# Explore the variable (incident region) to check which region is more common
+ggplot(data = MM,aes(x = MM$region_incident))+ 
+  geom_bar()+
+  theme(axis.text.x =element_text(angle = 90, hjust = 0.5,size = 12,color = "black"))+
+  ggtitle("Region of incident")+ 
+  xlab("Region of incident")+
+  coord_flip()
+
+```
+
+This shows that most of incidents have happened in North Africa. The second highst in in the Mediterranean and it followed by the US/Mexico borders. Some regions are colse by each others then this might take into account while analysis and observations. 
+
+```{r echo=F, Univariate_Plot3}
+
+#subset by region of oregion  MENA
+MENA <- subset(MM, MM$region_origin == "MENA")
+
+MENAplot <- ggplot(MENA, aes(y=MENA$Tdeath, x = MENA$Year)) + 
+  geom_line()+
+  ggtitle("Incident in the MENA Region")+ 
+  xlab("Years")+
+  ylab("Total number of deaths")
+MENAplot 
+```
+
+This plot shows just the reported cases in MENA region duing the years. It also shows that the second half of the year 2014 very high cases have been reported. and then the number has decreased dramatecely at the fist half of the year after. May be some safety or political actions have been taken after a the big lost in 2014
+
+
+
+```{r echo=F, Univariate_Plot4}
+
+#subset by regon of oregion  Mediterranean
+Mediterranean <- subset(MM, MM$region_incident == "Mediterranean")
+
+Meditplot <- ggplot(Mediterranean, aes(y=Mediterranean$Tdeath, x = Mediterranean$Year)) + 
+  geom_line(colour="red")+
+  ggtitle("Incident in the Mediterranean Region")+ 
+  xlab("Years")+
+  ylab("Total number of deaths")
+Meditplot
+
+```
+
+This plot shows just the reported cases in Mediterrenean region duing the years. 
+
+```{r echo= F , Univariant_plot_Cause_Of_Death}
+
+#cause of death:
+# I would like to invistigate in what is the common couse of death among all migrants 
+ggplot(data = MM, aes(MM$cause_type,MM$Tdeath),na.rm = T)+  
+  geom_point(mapping = aes(x = MM$cause_type, y = MM$Tdeath,color = MM$cause_type =="Drowning"))
+
+```
+
+From a first look into the data and also from the summeries conducted earlier, Drowing seems to be the most commong reson of death among the migrants. This plot shows the Dowring deaths in blue and it also confirm the observation. 
+
+# Bivariate Plots Section
+
+
+```{r echo=f, Bivariate_Plots}
+
+#different informations (Deaths Vs Missing)
+# Combine into one
+P1 = ggplot( data = MM, aes( Year, MM$affected_dead )) + geom_line()
+P2 = P1 +geom_line( data = MM, aes( Year, MM$affected_missing), colour="red")
+P2+ ggtitle(label = "Number of missing and dead migrants over years")+ 
+  ylab("missing and dead number")+
+  theme(plot.title = element_text(color="blue", face="bold", size=32, hjust=0.5)) +
+  theme(axis.title = element_text(color="gray", face="bold", size=17)) 
+
+
+```
+
+The number of missing and dead migrants over years. 
+
+
+```{r echo=F, Bivariate_Plots1}
+
+# Comparission Mediterranean Vs MENA Regions
+MENAplot <- ggplot(MENA, aes(y=MENA$Tdeath, x = MENA$Year))+ 
+  geom_line(size=2, colour = "blue")
+
+Meditplot <- MENAplot + geom_line(data= Mediterranean, 
+                aes(y=Mediterranean$Tdeath, x = Mediterranean$Year), 
+                colour="red") + 
+  ggtitle("Incident in the Mediterranean Vs MENA Regions")+ 
+  xlab("Years")+
+  ylab("Total number of deaths")
+
+Meditplot
+
+```
+Compairing the total number of death in both Mediterranean and MEAN regions over years. the time line shows that META in blue has less number than the red Mediterrean total deaths. 
+
+There are 5 high peaks in MENA death and the higest is about 500 case at the biggining of last quarter of the year 2014. It is also notable that at the fourth quarter of the year 2016, there are no reported deaths at MENA... we should study what heppened during that period in both incident regions and the origial region of the migrants... may be some potitical issues affected this... 
+
+However, the Mediterranean reported some cases all of them below 200 cases. I would like to focouse on this region becouse of the war in Syria and I also would like to focous on Syrian cases. 
+
+
+# Multivariate Plots Section
+
+In this section, I would like to plot Geographic latitude and longitude on  a map for more details. the dataset provided 2 variables log and lat which can be used... 
+
+```{r echo=F, Multivariate_Plots1}
+# Plotting coordinates into a map we need to use the right data fram for each of the selected varibales givein in the dataset
+
+Nationality <- as.data.frame.character(MM$affected_nationality)
+country <- as.data.frame.character(MM$region_incident)
+lat <- as.data.frame.numeric(MM$geo_lat)
+lon <- as.data.frame.numeric(MM$geo_lon)
+Deaths <- as.data.frame.integer(MM$affected_dead)
+Missings <- as.data.frame.integer(MM$affected_missing)
+TotalDe <- as.data.frame.integer(MM$Tdeath)
+DDate <- as.data.frame.Date(MM$Year)
+
+
+#####
+#MENA region
+lonMENA <- as.data.frame.numeric(MENA$geo_lon)
+latMENA <- as.data.frame.numeric(MENA$geo_lat)
+TD_MENA <- as.data.frame.integer(MENA$Tdeath)
+MENA_Nati <- as.data.frame.character(MENA$affected_nationality)
+
+```
+
+
+
+```{r echo=f, Multivariate_Plots2}
+#from github
+#http://sarahleejane.github.io/learning/r/2014/09/20/plotting-beautiful-clear-maps-with-r.html
+world_map <- map_data("world")
+
+#Add map to base plot
+ma <- ggplot() + coord_fixed() +
+  xlab("") + ylab("")
+
+#Add map to base plot
+base_world_messy <- ma + geom_polygon(data=world_map, aes(x=long, y=lat, group=group), 
+                                     colour="light green", fill="light green")
+
+base_world_messy
+
+cleanup <- 
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
+        panel.background = element_rect(fill = 'light blue',
+                                        colour = 'white'), 
+        axis.line = element_line(colour = "white"), legend.position="none",
+        axis.ticks=element_blank(), axis.text.x=element_blank(),
+        axis.text.y=element_blank())
+
+base_world <- base_world_messy + cleanup
+
+base_world
+```
+
+I will be using one of the above as a base map.
+
+
+```{r echo=F, Multivariate_Plots3}
+#The Geographic coordinates of the total deaths of migrants 
+map_data <- 
+  base_world_messy +
+  geom_count(data= TotalDe, 
+             aes(x=lon, y=lat), colour="Deep Pink", 
+             fill="Pink",pch=21, size=3, alpha=I(0.1))+
+  geom_text()
+
+map_data
+
+```
+
+The reported deaths in all years in all regions. THe darker the area, the more the number of deaths reported.. 
+
+
+```{r echo=F, Multivariate_Plots4}
+
+#zoom in to the MENA and Mediterrnean 
+ME <- map_data + coord_cartesian(xlim = c(-15,100), ylim = c(-40,55))
+ME + coord_cartesian(xlim = c(10,40), ylim = c(20,45)) +
+      scale_alpha(range = c(05,1))
+
+```
+
+it is clear to see that most of the cases are close by the costs (regions of origens). May be more stricted campaings from the region of origins will reduce the cases. Also some other cases are clear it happened between countries borders. THis point can be taken into account. 
+
+
+
+
+# Final Plots and Summary
+
+### Plot One
+```{r echo=F, Plot_One}
+summary.factor(MM$region_incident)
+#Region Inc Migr RIM
+MM$RIM  <- factor(MM$region_incident, 
+                  levels=c("North Africa", "Mediterranean", 
+                           "U.S./Mexico Border", "NA" ,"Central America incl. Mexico",
+                           "Horn of Africa", "Europe"))
+ggplot(MM, aes(x=RIM, group = MM$RIM)) + 
+  geom_bar(color="red", fill="yellow")+
+  theme(axis.text.x =element_text(angle = 90, hjust = 0.5,size = 12,color = "black"))+
+  ggtitle("Selected Incident Regions")+ 
+  xlab("Region of incident")+
+  theme(plot.title = element_text(color="blue", face="bold", size=20, hjust=0.5)) +
+  theme(axis.text = element_text(color = "gray", face="bold", size=17)) +
+  geom_hline(yintercept = 500, size = 1, linetype = 7)+
+  coord_flip()
+```
+
+
+### Description One:
+THis bar chart studies just a part of the incident regions. I choosed those regions to be my areas of intersts becouse they have the highest deaths rates among all other regions. Also it includes my area of interst (Mediterranean). 
+
+from the graph, the North Africa has the highest death rate among all countries. This clear from the summary (total of  626   only in North Africa.). Mediterranean become the second with 566 reported case. Then the US -Mexico borders with 507 cases. HOwever, we should have more information about hte NA or the unknown cases. 
+### Plot Two
+```{r echo=FALSE, Plot_Two_A}
+
+MMEE22 <- 
+  base_world_messy + 
+  stat_density2d(data = TotalDe, aes(x = lon, y = lat,
+                alpha=..level.., fill=..level..,contour = T), 
+                 size=4, bins=10, geom=c("polygon","contour"),
+                 inherit.aes=FALSE) + 
+  geom_density2d(data = TotalDe, aes(x = lon, y=lat),
+                 colour="black", bins=2,inherit.aes=FALSE, alpha=I(0.5),
+                 size=2)+
+  scale_fill_gradient(low = "blue", high = "red") +
+  geom_point(data = TotalDe, aes(x = lon, y=lat),inherit.aes=FALSE)
+
+MMEE22 
+
+```
+
+This map shoes that there are 3 areas in the world which have the highest migrants deaths. One is the Maxican/American borders, the other is Mediterranean and MENA. THe last is in Africa, Howver Mediterranean and MENA area seem to be the higest among the 3 areas. This is clear by the density visualization of the Todal number of Deaths from the dataset. 
+
+
+```{r echo=T, Plot_Two_B}
+
+# zooming in to the area of interest
+MMEE22 + coord_cartesian(xlim = c(-10,70), ylim = c(0,53))+
+  ggtitle("Total Migrants Deaths In MENA and Mediterranean")+ 
+  xlab("Longitude")+
+  ylab("Latitude")+
+  theme(axis.title = element_text(color="black", face="bold", size=15)) +
+  theme(plot.title = element_text( color="blue", face="bold", size=20, hjust=0.5))
+
+```
+
+Zooming in to the above figure, and focusing in Mediterranean and MENA regions ( since they have the most count number), This figure gives more details on the movement of the migrants before any accedent happen. 
+
+The highest rate appears in the red density area. It is the Mediterranean sea. Not surprised, It is the only barrier between wealthy countries with great life (Europe) and poor countries full of war and unemployment. It is also clear that South East African are going toward the North aiming to Europe. The UN and other countries should look into this problem and try to adress the resons behid this move and find solutions. 
+
+It is also notiable that Countries in Eest  and South Europe affected the most. HOwever, some migraints are aiming the the UK. 
+
+
+### Plot Three
+```{r echo=T, Plot_Three}
+MMEEE <- 
+  base_world_messy + 
+  stat_density2d(data = TD_MENA, aes(x = lonMENA, y = latMENA,
+alpha=..level.., fill=..level..,contour = T), 
+                 size=4, 
+                 bins=10, 
+                 geom=c("polygon","contour"),
+                 inherit.aes=FALSE) + 
+  geom_density2d(data = TD_MENA, aes(x = lonMENA, y=latMENA),
+                 colour="black", bins=2,inherit.aes=FALSE, alpha=I(0.5),
+                 size=2)+
+  scale_fill_gradient(low = "blue", high = "red") +
+  geom_point(data = MENA_Nati, aes(x = lonMENA, y=latMENA),inherit.aes=FALSE)
+ 
+MMEEE + coord_cartesian(xlim = c(-10,50), ylim = c(25,53))+
+  ggtitle("Total Migrants Deaths in MENA Region")+ 
+  xlab("Longitude")+
+  ylab("Latitude")+
+  theme(axis.title = element_text(color="black", face="bold", size=15)) +
+  theme(plot.title = element_text( color="blue", face="bold", size=20, hjust=0.5))
+```
+
+### Description Three
+Well, first, I used the data just from MENA region after i subset the main dataset. The main reson for this is to investigate the migrants from Syria becouse of the current civil war. It has been all among media and with this I might get some answers. 
+
+I plotted the points and its density (total deaths in MENA region). THe plot has 3 areas of interests. The highest level of density is shown East of Turky where most of Syrian refugees moved. Then they try to arrive to Greece of ther European Countries. The other high reagin is on the Turkish Syrian borders. This confirms the 1st observation where Syrians escape to Turky looking for a better place then after settle down they try to move illegally to Europe. I did a quick investagation and I found during this time, the European migrant crisis has began.
+Souce:
+https://en.wikipedia.org/wiki/European_migrant_crisis
+
+THe above article answers many questions come up to my mind while dealing with this dataset. I will touch this on the reflection .
+
+
+
+# Reflection
+Well, I used the dateset to investigate the movement of the migrants not only in MENA and Mediterranean region, but also the world. Some statistics has been sone to check which region has the higest number of deaths. I found out that MENA including North Africa and Mediterranean region contian the hgihest death rate world wild.
+
+There are dirrefent resons behind this hgih rate in those regions. The Wikipedia website above gives an overview about the sitoation in Europe. Also the civil war in Syria and in Sudan and other resons related to the hard life in Africa play important role to this to be happened. 
+
+However, I found some diffeculities to deal with the dataset. One of them is the Catigorical date. Not many numeric or integer data provided. Also it would be nice to include the gender of the reported case and whether or not has children... These details will answer more questions and might help to prevent or reduce this from happeneing in future. 
+
+I also got surprise of the number or migrent deaths between the US and Mexico borders. That is a big number comparing to the WAR and hunger in MENA and Mediterrnean regions. 
+
+I did not touch the meta source name and relability. May be we could infistegate more about this in particular to verify the data for better use. Also I did not check deaply into the particular months and the weather conditions in each month. This of course decreas or increase the eaths and missing cases as most of them died by drowing.
+
+At the End, I think with Data Analysis we can definitely help to prevent such things to be happened. However, political actions most be taken to help those human and save thier lives.
