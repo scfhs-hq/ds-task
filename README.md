@@ -24,7 +24,7 @@ In this project, Kaggle has been used to practice the modeling process. Regressi
 
 ## Project3 DATA WRANGLING
 - Open Street Map Data Wrangling of Amsterdam City, The Netherlands, has been used.
-- The data has been downloaded as XML format from (https://mapzen.com). Thu, Jun 15, 2017.
+- The data has been downloaded as XML format from [mapzen](https://mapzen.com). Thu, Jun 15, 2017.
 
 
 ## Project4_ML_FraudDetection
@@ -34,4 +34,4 @@ This project is about using the machine learning skills to investigate Enron emp
 This prject about webscraping, APIs, Natural Language Processing, and some additional classification methods. The major 2 skills were used in this is 1. Collecting data by via an API and then 2. building a binary predictor on text data.
 
 ## Tableau
-A html link to mu Profile at Tableau Public 
+A link to my [Tableau Public Profile](https://public.tableau.com/profile/yasser.alnakhli#!/vizhome/Tracking_Migrants_Deaths/P6ProjectTrackingMigrantsDeathsinMENAregion)
